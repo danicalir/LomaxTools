@@ -1,72 +1,68 @@
+% Compares Lomax optimization using lomaxopt versus built-in MLE and fitdist (which produces
+% same output as gpfit) functions
+% 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%
+% Written by Danica Roth, Colorado School of Mines, May 2019.
+%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
 clear
-%Load data and set maximum x value
-%x1=low_small; x1a=low_small with censored offset; x2=high_large
-% load('C:\Users\danicar\Desktop\Analysis\RockDrops\testdata.mat','x1','x2')
-% x1=[x1;40];
 
-load('/Users/danicaroth/Google Drive/Academic/Analysis/Scripts/Github/Data_ParticleMotion/Data/rockdrop.mat');
-x1=rockdrop{1,1}.data.x;
-x2=rockdrop{7,3}.data.x;
-D1=0.0168;
-x1(x1==0)=D1/2; %make all zero values = D/2
-D2=0.0724;
-x2(x2==0)=D2/2; %make all zero values = D/2
-mindist=0.1;
-maxdist=40;
-mdist=[mindist maxdist];
-xnew=0:0.01:50;
+load('Data/rockdrop.mat');
+for s=1:7
+    for r=1:3
+theta=0.1; %left truncation point (m)
+trunc=@(data) (data.x(data.x>theta)-theta); %anonymous function for left-truncating and re-zeroing data
+maxdist=rockdrop{s,r}.distributions.CensorPoint;
+mdist=[0 maxdist];
+xnew=0:0.001:maxdist;
 
-xdata=x1;
-D=D1;
-xdataa=[xdata;maxdist];
+xdata=trunc(rockdrop{s,r}.data);
 
 %Calculate PDF and CDF of data and fits
-gppl=@(x)[1,1,0;-100,0,0;100,100,D/2];% GP parameter limits for mle [start;lower;upper]
-exppl=@(x)[D/2;D/2;max(xdata)];% EXP parameter limits for mle [start;lower;upper]
+gppl=[1,1,0;-100,0,0;100,100,0];% GP parameter limits for mle [start;lower;upper]
 
 GP=struct('distname','GeneralizedPareto', 'pdfname','pdf', 'pdf',@(x,k,sigma,theta)gppdf(x,k,sigma,theta), 'cdfname','cdf', 'cdf',@(x,k,sigma,theta)gpcdf(x,k,sigma,theta));
 logGP=struct('distname','GeneralizedPareto', 'pdfname','logpdf','pdf',@(x,k,sigma,theta)(-(1+1/k)*log(1+k*(x-theta)./sigma)-log(sigma)), 'cdfname','logsf', 'cdf',@(x,k,sigma,theta)(-(1/k)*log(1+k*(x-theta)/sigma)));
-EXP=struct('distname','Exponential', 'pdfname','pdf', 'pdf',@(x,mu)exppdf(x,mu), 'cdfname','cdf', 'cdf',@(x,mu)expcdf(x,mu));
-logEXP=struct('distname','Exponential', 'pdfname','logpdf', 'pdf',@(x,mu)((-x/mu)-log(mu)), 'cdfname','logsf', 'cdf',@(x,mu)(-x/mu));
 
+[pd(1)]=fitgpdistributions(xdata,GP,gppl,xnew,'FitMethod','mle','CensorPoint',mdist);
+[pd(2)]=fitgpdistributions(xdata,GP,gppl,xnew,'FitMethod','fitdist','CensorPoint',mdist);
 
+cens=rockdrop{s,r}.distributions.X>=rockdrop{s,r}.distributions.CensorPoint; % Elements of X to censor from Lomax fitting
 
+[A_opt,B_opt] = lomaxopt(rockdrop{s,r}.distributions.X,rockdrop{s,r}.distributions.R, 'censoring',cens, 'fitmethod','log' , 'conditions',{'any(Rhat<1e-6)'  '1./(B-A.*theta)<0'} , 'addvars',{'P' rockdrop{s,r}.distributions.P});
 
-[pd(1)]=fitdistributions(xdata,mdist,GP,gppl(xdata),xnew,'FitMethod','mle');
-[pd(2)]=fitdistributions(xdataa,mdist,GP,gppl(xdataa),xnew,'FitMethod','mle');
-[pd(3)]=fitdistributions(xdata,mdist,GP,gppl(xdata),xnew,'FitMethod','fitdist','censoring','off');
-[pd(4)]=fitdistributions(xdataa,mdist,GP,gppl(xdataa),xnew,'FitMethod','fitdist','censoring','off');
-        
-
-
-% [pd(1)]=fitdistributions(xdata,maxdist,logEXP,exppl(xdata),xnew,'FitMethod','mle');
-% [pd(2)]=fitdistributions(xdataa,maxdist,logEXP,exppl(xdataa),xnew,'FitMethod','mle');
-% [pd(3)]=fitdistributions(xdata,maxdist,logEXP,exppl(xdata),xnew,'FitMethod','fitdist');%,'censoring','off');
-% [pd(4)]=fitdistributions(xdataa,maxdist,logEXP,exppl(xdataa),xnew,'FitMethod','fitdist');%,'censoring','off');
-
-[CDF,X]=ecdf(xdata,'censoring',(xdata>=maxdist));
-[CDFa,Xa]=ecdf(xdataa,'censoring',(xdataa>=maxdist));
+if any(xdata>=maxdist)
+    censmethod='(censored)';
+elseif ~any(xdata>=maxdist)
+    censmethod='(uncensored)';
+end
 
 %Plot everything
-% legendtext=['''MLE (censored)'',''MLE (uncensored)'',''Fitdist (censored)'',''Fitdist (uncensored)'''];
-legendtext=['''',pd(1).Method,''',''',pd(2).Method,''',''',pd(3).Method,''',''',pd(4).Method,''''];
-vtext=@(text) ['xnew,pd(1).',text,',''r'',xnew,pd(2).',text,',''m-.'',xnew,pd(3).',text,',''b'',xnew,pd(4).',text,',''c-.'''];
+legendtext={['Data ',censmethod,''] ['',pd(1).Method,''] ['',pd(2).Method,''] ['lomaxopt ',censmethod,'']};
+vtext=@(text) ['xnew,pd(1).',text,',''b'',xnew,pd(2).',text,',''m-.'',xnew,',text,'fitopt(xnew),''g--'''];%,xnew,pd(3).',text,',''b'',xnew,pd(4).',text,',''c-.'''];
 DC=@(C) deal(C{:});
 makevtext=@(varargin) DC(cellfun(@(V) vtext(V),varargin,'uniform',0));
 [Ptext,Rtext,PDFtext,CDFtext]=makevtext('P','R','PDF','CDF');
+Pfitopt=@(x)1./(A_opt.*x+B_opt);
+Rfitopt=@(x)(1+(A_opt.*x./B_opt)).^(-1./A_opt);
+PDFfitopt=@(x)(1/B_opt).*(1+(A_opt.*x./B_opt)).^(-((1./A_opt)+1));
+CDFfitopt=@(x)(1-Rfitopt(x));
+xrange=[0 max(xdata).*1.1];
 
 figure(17)
 clf
 subplot(2,2,1)
 hold on
-stairs(X,CDF,'k')
-stairs(Xa,CDFa,'k-.')
+stairs(rockdrop{s,r}.distributions.X,rockdrop{s,r}.distributions.CDF,'k')
 eval(['plot(',CDFtext,')']);
 xlabel('x')
-xlim([0 max(xdata)]) 
+xlim(xrange) 
 ylabel('Cumulative Probability')
-title('Dataset 1')
-eval(['legend(''Data'',''Offset Data'',',legendtext,',''Location'',''southeast'')'])
+title(rockdrop{s,r}.data.SiteName)
+legend(legendtext,'Location','southeast');
 
 subplot(2,2,2)
 [h]=histogram(xdata,100,'Normalization','pdf');
@@ -74,20 +70,22 @@ hold on
 eval(['plot(',PDFtext,')']);
 xlabel('x')
 ylabel('Probability Density')
-xlim([0 max(xdata)]);
-title(pd(1).DistName)
+xlim(xrange) 
 
 subplot(2,2,3)
-eval(['semilogy(',Rtext,')']);
+eval(['semilogy(rockdrop{s,r}.distributions.X,rockdrop{s,r}.distributions.R,''k.'',',Rtext,')']);
 ylabel('Exceedance R')
 xlabel('x')
-xlim([0 max(xdata)]);
+xlim(xrange) 
 
 subplot(2,2,4)
-eval(['loglog(',Ptext,')']);
+eval(['loglog(rockdrop{s,r}.distributions.X,rockdrop{s,r}.distributions.P,''k.'',',Ptext,')']);
 ylabel('Disentrainment Rate P')
 xlabel('x')
-xlim([0 max(xdata)]);
-    
+xlim(xrange) 
+   
+pause
 
+    end
+end
 
