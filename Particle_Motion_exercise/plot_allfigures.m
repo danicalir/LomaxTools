@@ -1,3 +1,5 @@
+
+
 clear
 load('Data/rockdrop.mat');
 load('Data/topo.mat');
@@ -46,16 +48,29 @@ for s=1:7
     end
 end
 
+fc=[     0    0.4470    0.7410; 0.8500    0.3250    0.0980; 0.9290    0.6940    0.1250];%colors for histograms  
+yt=[300;...%transect y(element) number (manually selected for each site)
+    150;...
+    120;...
+    94;...
+    220;...
+    155;...
+    304];
+yt=yt(iorder);
+isite='BBBNNNN';
+hnum=[10 30 30]; %number of histogram bins for different particle sizes
+
 %% SET PARAMETERS AND RESHAPE VARIABLES FOR PLOTTING
 
 ns=7;nr=3; %numbers of slope and rock variables (for iterations and subplots)
-rsvar={X,P,R,CensorPoint,A_opt,Ase,B_opt,Bse,xr,xrse,slope,D,topo.d50}; %cell array of all variables to reorder by slope for plotting
-[X,P,R,CensorPoint,A_opt,Ase,B_opt,Bse,xr,xrse,slope,D,d50]=DC(cellfun(@(v)v(iorder,:),rsvar,'Uniform',0)); %reorder all variables
+rsvar={X,P,R,CensorPoint,A_opt,Ase,B_opt,Bse,xr,xrse,slope,slopedeg,D,topo.d50}; %cell array of all variables to reorder by slope for plotting
+[X,P,R,CensorPoint,A_opt,Ase,B_opt,Bse,xr,xrse,slope,slopedeg,D,d50]=DC(cellfun(@(v)v(iorder,:),rsvar,'Uniform',0)); %reorder all variables
 site=site(iorder);
 Apos=(A_opt>0); %indices of positive A values
 Aneg=(A_opt<0); %indices of negative A values
 Pfitopt=@(x,s,r)1./(A_opt(s,r).*(x-theta_opt(s,r))+B_opt(s,r));
 Rfitopt=@(x,s,r)(1+(A_opt(s,r).*(x-theta_opt(s,r))./B_opt(s,r))).^(-1./A_opt(s,r));
+theta=0.1; %theta (left truncation) at all sites = 0.1 m
 
 %% PLOT ROUGHNESS HEIGHT DISTRIBUTIONS (Fig. 2c) 
 
@@ -74,6 +89,76 @@ end
 l=legend(hplegtext,'Location','NorthWest');
 set(gca,'xlim',[0.0001 3])
 set(ahp,'LineWidth',1.25)
+
+
+%% PLOT TOPOGRAPHIC PROFILES AND TRAVEL DISTANCE HISTOGRAMS (Fig. 2a, 2b and S2)
+
+for i = 1:7
+    eval(['f2',site{i},' = figure(2',num2str(i),');']); clf
+    eval(['set(f2',site{i},',''Name'',''Figs. 2/S2: Topography and travel distance histograms'',''NumberTitle'',''off'');']);
+
+    %Pick rasters
+    raster={topo.raster{iorder(i)} topo.raster_lp{iorder(i)} topo.raster_hp{iorder(i)}};
+    nx=size(raster{1},2); 
+    ny=size(raster{1},1);
+    y = [1:ny]./100;   
+    x = [1:nx]./100;
+    z = raster{1}(yt(i),:);
+    zs = z-(slope(i).*x); %re-trend elevations in horizontal reference frame
+    x = x./cosd(slopedeg(i))-theta; %convert x to along-ground reference frame (matching travel distances) and shift by truncation distance (theta)
+    z0 = interp1(x(~isnan(zs)),zs(~isnan(zs)),0,'linear','extrap'); %extrapolate linearly to find z(x=0) to rezero z (for sites with z(x=0)=NaN)
+    zs = zs-z0; %rezero z to x=0 (theta-shifted starting line) elevation
+    cp(i)=max(CensorPoint(i,:)-theta); %make i-specific cp and shift by theta for easy reference later
+       
+    %Plot the topographic transects 
+    s1 = subplot(2,1,1);
+    yyaxis left
+    plot(x,zs,'k','linewidth',2); hold on
+    ylabel('elevation below starting point [m]')
+    
+    %Set lower z-limit for plotting
+    if i==1
+        zlimval = [-11 0]; %manually set first site because raster does not extend to max travel distance
+    else
+        zlimval = [interp1(x(~isnan(zs)),zs(~isnan(zs)),1.05*min(max(x),cp(i)),'linear','extrap') 0];
+    end
+    
+    %Plot the filtered topography
+    yyaxis right
+    plot(x,raster{2}(yt(i),:),'-s','linewidth',5,'Color',0.85.*[1 1 1]); %plot low-pass (long wavelength) topographic transects (in gray for visibility)
+    plot(x,raster{3}(yt(i),:),'linewidth',2,'Color',colors(i,:)); %plot high-pass (short wavelength) topographic transects)
+    ylabel('filtered topography [m]')    
+    set(s1.YAxis(1),'Color','k','Limits',zlimval)
+    set(s1.YAxis(2),'Color',colors(i,:),'Limits',[-.75 .75])
+    set(s1.XAxis,'Limits',[0 1.05*cp(i)]);
+    title(site{i}(1:3));
+    
+    %Plot close-up inset
+    axes('Position',[.64 .84 .25 .07])
+    box on
+    plot(x,raster{3}(yt(i),:),'linewidth',2,'Color',colors(i,:));
+    ylabel('d [m]')
+    xlabel('x [m]')
+    ylim([-.3 .3])
+    xlim([0 2.3])
+    ax2=gca;
+    ax2.YAxis(1).Color = colors(i,:);
+
+    %Plot histograms of travel distances
+    subplot(2,1,2)
+    for r=[3 2 1]
+        xdata{r} = rockdrop{iorder(i),r}.data.x(rockdrop{iorder(i),r}.data.x>0.1)-0.1;
+        xdata{r}(xdata{r}>=cp(i))=cp(i);
+        histogram(xdata{r},hnum(r),'FaceColor',fc(r,:)); hold on
+    end
+    ylabel('Number of particles disentrained')
+    xlabel('along-ground travel distance x [m]')
+    xlim([0 1.05*cp(i)]) %match axes with final figure 2 (x vs R)
+  
+    if i==1
+        legend('large','medium','small')
+    end
+end
 
 
 %% PLOT ALL MODELED DISENTRAINMENT AGAINST OBSERVED VALUES (Fig. 4)
@@ -175,26 +260,31 @@ Lomaxfunc={ @(a)(a) @(a)abs(a) @(a)(a)}; %anonymous functions for calculating
 xvalname={'$SD/d_{50}$' '$SD$'}; %x-axis strings
 xval={slope.*D./d50 slope.*D}; %x-axis arrays
 axisscale={'''xscale'',''log'',''yscale'',''log'''}; 
-corrcoefarg={{'real(log(col(xval{j}(Apos)))),real(log(col(LomaxParam{i}(Apos))))'};...
-             {'real(log(col(xval{j}(Aneg)))),real(log(col(LomaxParam{i}(Aneg))))'};...
-             {'real(log(col(xval{j}))),real(log(col(LomaxParam{i})))'}};  
+corrcoefarg={{'log(col(xval{j}(Apos))), log(abs(col(LomaxParam{i}(Apos))))'};...
+             {'log(col(xval{j}(Aneg))),  log(abs(col(LomaxParam{i}(Aneg))))'};...
+             {'log(col(xval{j})), log(abs(col(LomaxParam{i})))'}};  
 corrcoefname={'_+' '_-' ''};
 corrcoefselect={{1:2 1:2} {1:2 1:2} {1:2 3}};
 corrcoefpos={[0 .8]};
 xlimit=cellfun(@(a) [.9*min(a,[],'all') 1.1*max(a,[],'all')],xval,'uniformoutput',0);
-negmarkershape=markers;
+ylimit={[1e-2 1e3] [1e-3 1e1] [1e-2 1e1]};
+
 for i=1:length(LomaxParam) 
     for j=1:length(xval)
         for s=1:7
             for r=1:3
                 subplot(length(LomaxParam),length(xval),j+length(xval)*(i-1))
                 box on
+               
+                % Plot all data with negative A-values with filled markers
                 if A_opt(s,r)<0
-                    scatter(col(xval{j}(s,r)),col(Lomaxfunc{i}(LomaxParam{i}(s,r))),plottingsize(s,r),colors(s,:),negmarkershape{s,r},'filled');
+                    scatter(col(xval{j}(s,r)),col(Lomaxfunc{i}(LomaxParam{i}(s,r))),plottingsize(s,r),colors(s,:),markers{s,r},'filled');
                 end 
                 hold on
-                if abs(LomaxParam{i}(s,r))<abs(LomaxErr{i}(s,r))
-                    errorbar(col(xval{j}(s,r)),col(Lomaxfunc{i}(LomaxParam{i}(s,r))),col(Lomaxfunc{i}(LomaxParam{i}(s,r)))-.01,...
+                
+                % Plot all data with error bars
+                if abs(LomaxParam{i}(s,r))<abs(LomaxErr{i}(s,r)) %if error crosses zero, make lower error bar black
+                    errorbar(col(xval{j}(s,r)),col(Lomaxfunc{i}(LomaxParam{i}(s,r))),col(Lomaxfunc{i}(LomaxParam{i}(s,r)))-.001,...
                         NaN,'color','k','LineStyle','-.','marker','none','LineWidth',.5)
                     errorbar(col(xval{j}(s,r)),col(Lomaxfunc{i}(LomaxParam{i}(s,r))),NaN,col(Lomaxfunc{i}(LomaxErr{i}(s,r))),...
                         'color',colors(s,:),'marker','none','LineWidth',.5)
@@ -207,13 +297,16 @@ for i=1:length(LomaxParam)
                 end
             end 
         end
+        
         xlim(xlimit{j});
+        ylim(ylimit{i});
         eval(['set(gca,',axisscale{:},')']); 
         
         if j==1
             ylabel(LomaxParamname{i},'Interpreter','Latex','fontsize',14)
         end
         
+        % Annotate with r-values calculated independently for A>0 (r+) and A<0 (r-)
         if ismember(j,corrcoefselect{i}{1})
             rptext=[];
             for k=1:length(corrcoefselect{i}{2})
@@ -229,6 +322,3 @@ for i=1:length(LomaxParam)
         end
     end
 end
-
-pause(2)
-xlim(xlimit{j})
