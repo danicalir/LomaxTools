@@ -1,26 +1,32 @@
-
+% Produce all plots shown in Roth et al (submitted to PNAS, 2020) 
+% 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%
+% Written by Danica Roth, Colorado School of Mines, May 2019.
+%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
 clear
 load('Data/rockdrop.mat');
 load('Data/topo.mat');
 load('Data/bootstrap.mat');
-load('Data/results.mat');%,X,P,R,CensorPoint,A_opt,Ase,B_opt,Bse,xr,xrse,slope,D,site);
+load('Data/results.mat');
 
 
 %% DEFINE ANONYMOUS FUNCTIONS 
 col = @(x) reshape(x,[numel(x),1]); %anonymous function to reshape into columns
 DC=@(C) deal(C{:}); %deal elements of cell matrix into separate variables (e.g., outputs of cellfun)
-% DA=@(A,r,c) A(r,c); %select specific elements of array (doesn't require deal) 
-% DAC=@(A,m,n) deal(A{:}(m,n));
 Xfit=@(xmax) 0.001:0.001:xmax;
+
 
 %% PREP ALL PLOTTING OPTIONS 
 
-iorder=[4 1 5 2 6 3 7]; %order for plotting by slope
-[~,q]=sort(iorder); %resorted order for plotting by group (veg/burn)
+[~,iorder]=sort(slope(:,1)); %elements to call sites ordered by increasing slope (for plotting)
+iorder(3:4)=[5 2]; %manually swap order of the two 20 degree sites for alternating VBVBVBV plotting order
+[~,ig]=sort(iorder); %resorted order for plotting by group (veg/burn)
 
-
-% Color matrix and rock size delimiter matrix for plotting by site/size
+% Color matrix, rock size delimiter matrix, varying styles, etc. for plotting by site/size
 colors=[237 177 32;...
         179 177 32;...
         119 172 48;...
@@ -48,23 +54,24 @@ for s=1:7
     end
 end
 
-fc=[     0    0.4470    0.7410; 0.8500    0.3250    0.0980; 0.9290    0.6940    0.1250];%colors for histograms  
-yt=[300;...%transect y(element) number (manually selected for each site)
-    150;...
-    120;...
-    94;...
-    220;...
-    155;...
-    304];
+fc=[     0    0.4470    0.7410; 0.8500    0.3250    0.0980; 0.9290    0.6940    0.1250];%face colors for histograms  
+
+%Transect y(element) numbers (manually selected for each site in original BBBNNNN order)
+yt=[300;... %B17
+    150;... %B20
+    120;... %B28
+    94;...  %V14
+    220;... %V20
+    155;... %V24
+    304];   %V39
 yt=yt(iorder);
-isite='BBBNNNN';
 hnum=[10 30 30]; %number of histogram bins for different particle sizes
 
 %% SET PARAMETERS AND RESHAPE VARIABLES FOR PLOTTING
 
 ns=7;nr=3; %numbers of slope and rock variables (for iterations and subplots)
-rsvar={X,P,R,CensorPoint,A_opt,Ase,B_opt,Bse,xr,xrse,slope,slopedeg,D,topo.d50}; %cell array of all variables to reorder by slope for plotting
-[X,P,R,CensorPoint,A_opt,Ase,B_opt,Bse,xr,xrse,slope,slopedeg,D,d50]=DC(cellfun(@(v)v(iorder,:),rsvar,'Uniform',0)); %reorder all variables
+rsvar={X,P,R,CensorPoint,A_opt,Ase,B_opt,Bse,xr,xrse,slope,slopedeg,D,topo.d50,dataname}; %cell array of all variables to reorder by slope for plotting
+[X,P,R,CensorPoint,A_opt,Ase,B_opt,Bse,xr,xrse,slope,slopedeg,D,d50,dataname]=DC(cellfun(@(v)v(iorder,:),rsvar,'Uniform',0)); %reorder all variables
 site=site(iorder);
 Apos=(A_opt>0); %indices of positive A values
 Aneg=(A_opt<0); %indices of negative A values
@@ -79,12 +86,12 @@ set(f2c,'Name','Fig. 2c: Cumulative distributions of roughness heights','NumberT
 hplegtext={};
 for i=1:7
     ahp(i)=semilogx(topo.dhp{i},topo.CDF_dhp{i});
-    set(ahp(i),'Color',colors(q(i),:),'LineStyle',linestyle{q(i)});
+    set(ahp(i),'Color',colors(ig(i),:),'LineStyle',linestyle{ig(i)});
     ylabel('Cumulative fraction less than');
     xlabel('Roughness height d [m]');
     hold on
     
-    hplegtext=[hplegtext [site{q(i)}(1:3),', d_{50}=',num2str(topo.d50(i,1),'%.3f')]]; %text for legends to be added later
+    hplegtext=[hplegtext [site{ig(i)}(1:3),', d_{50}=',num2str(topo.d50(i,1),'%.3f')]]; %text for legends to be added later
 end
 l=legend(hplegtext,'Location','NorthWest');
 set(gca,'xlim',[0.0001 3])
@@ -312,7 +319,6 @@ for i=1:length(LomaxParam)
             for k=1:length(corrcoefselect{i}{2})
                 rval=eval(['corrcoef(',corrcoefarg{corrcoefselect{i}{2}(k)}{:},');']);
                 rptext=[rptext,newline,'$r',corrcoefname{corrcoefselect{i}{2}(k)},' = ',num2str(rval(1,2),2),'$'];
-                        
             end
             pos = get(gca, 'position');
             dim = [pos(1)+.7*pos(3) pos(2)+.1*pos(4) 0.1 0.1];
