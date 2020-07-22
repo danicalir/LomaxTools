@@ -1,4 +1,4 @@
-function [pd]=fitdistributions(xdata,dist,paramlims,xnew,varargin)
+function [pd]=fitgpdistributions(xdata,dist,paramlims,xnew,varargin)
 
 % Fits data to the input distribution with either MLE or fitdist method and
 % optional censoring. (Note: fitdist method does not allow censoring for
