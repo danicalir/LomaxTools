@@ -24,7 +24,7 @@ function [A_opt,B_opt] = lomaxopt(X,R,varargin)
 %      'Censoring' : 'X>censorpoint1 | X<censorpoint2' or [elements of X and Y to exclude] (default = [])
 %                - Data can also be pre-censored before running lomaxopt           
 %      'Conditions' : additional parameter conditions (will blow up error if met)
-%                (e.g., func_to_opt_pareto(v,X,R,'Conditions',{'A>0' 'P<0'}] will NOT allow A>0 or P<0)
+%                (e.g., ssepareto(v,X,R,'Conditions',{'A>0' 'P<0'}] will NOT allow A>0 or P<0)
 %      'AddVars' : cell array of additional variables needed to evaluate added Conditions
 %                - must be in format {'variable1name' variable1; 'variable2name' variable2;...}
 %                (e.g., to include P from above example condition, use: 'AddVars',{'P' P})
@@ -39,7 +39,7 @@ function [A_opt,B_opt] = lomaxopt(X,R,varargin)
 % 
 % 
 % EXAMPLE:
-% [fitresult,gof,fitparams,Rfit] = createFit(X,R,'fitmethod',fitmethod,'censoring',cens,'upper',[inf],'start',[0 .01],...
+% [fitresult,gof,fitparams,Rfit] = createfit(X,R,'fitmethod',fitmethod,'censoring',cens,'upper',[inf],'start',[0 .01],...
 %                                            'fitEQ','(1+A.*x./B).^-(1./A)','lower',[],'plot','off');  %
 % 
 % 
@@ -70,7 +70,7 @@ end
 % Use equivalent Pareto II distribution form with A=1/alpha and B=lambda/alpha:
 % R = [1+x./lambda].^(-alpha) to avoid error from 1/0 exponent at A=0
 
-[fitresultR,~,~,~]=createFit(X,R,['(1+x./lambda).^(-alpha)'],'fitmethod',fitmethod,'censoring',cens,...
+[fitresultR,~,~,~]=createfit(X,R,['(1+x./lambda).^(-alpha)'],'fitmethod',fitmethod,'censoring',cens,...
                                            'lower',[0 0],'upper',[inf inf],'start',[0 0.0001]);
 
 A_pre0=1./fitresultR.alpha; %pre-preliminary A value used as initial starting value for optimizing preliminary A
@@ -79,16 +79,16 @@ B_pre=fitresultR.lambda./fitresultR.alpha; %preliminary B value
 % Fit preliminary A by setting preliminary B and using pre-preliminary A as a starting point.
 % (Setting B allows constraints on A so negative A values are possible)
 % Yes it's that complicated.
-[fitresultRA, ~,~,~] = createFit(X,R,eval(['''(1+A.*x./',num2str(B_pre),').^-(1./A)''']),'fitmethod',fitmethod,...
+[fitresultRA, ~,~,~] = createfit(X,R,eval(['''(1+A.*x./',num2str(B_pre),').^-(1./A)''']),'fitmethod',fitmethod,...
                                            'censoring',cens,'upper',[inf],'start',A_pre0,'lower',[-B_pre/max(X(~cens))],'plot','off');
 A_pre = fitresultRA.A;
 
 
 %% Use fminsearch for joint optimization of A and B 
-% (provides better fit than createFit but is highly sensitive to starting search values... 
+% (provides better fit than createfit but is highly sensitive to starting search values... 
 % improves with starting values determined from above fitting procedure)
 
-f = @(v) func_to_opt_pareto(v,X,R,'censoring',cens, 'fitmethod',fitmethod, 'theta',0, 'Conditions',conditions, 'AddVars',{'P' P});
+f = @(v) ssepareto(v,X,R,'censoring',cens, 'fitmethod',fitmethod, 'theta',0, 'Conditions',conditions, 'AddVars',{'P' P});
 options = optimset('MaxIter',maxiter, 'MaxFunEvals',maxfunevals, 'Display',display); % increase iterations so GP converges
 
 vopt = fminsearch(f,[A_pre.*2 B_pre.*2],options); %use previous rough fits as starting values

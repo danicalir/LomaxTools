@@ -16,7 +16,7 @@ function [Ase,Bse,xrse,A_se,B_se,xr_se] = lomaxbootstrap(A_opt,B_opt,theta,Censo
 %  Optional Inputs:
 %      'FitMethod' : 'linear' or 'log' (default = 'linear')
 %      'Conditions' : additional parameter conditions (will blow up error if met)
-%                (e.g., func_to_opt_pareto(v,X,R,'Condition',{'A>0' 'P<0'}] will NOT allow A>0 or P<0)
+%                (e.g., ssepareto(v,X,R,'Condition',{'A>0' 'P<0'}] will NOT allow A>0 or P<0)
 %      'Display' : 'on' or 'off' display iterations for fit (default = 'off')
 %      'iboot' : number of bootstrap iterations (default = 10000) 
 %      'MaxIter' : maximum positive integer number of iterations allowed in fminsearch (default = 100000)
@@ -67,17 +67,17 @@ for i=1:iboot
     
     % Optimize lomax parameters for bootstrapped data
     SEcens = Xse>=CensorPoint; 
-    [fitresulttest,~,~,~]=createFit(Xse,Rse,'(1+x./lambda).^(-alpha)','fitmethod',fitmethod,'censoring',SEcens, 'Lower',[0 0],'Upper',[inf inf],'Start',[0 0.0001]);
+    [fitresulttest,~,~,~]=createfit(Xse,Rse,'(1+x./lambda).^(-alpha)','fitmethod',fitmethod,'censoring',SEcens, 'Lower',[0 0],'Upper',[inf inf],'Start',[0 0.0001]);
     A_bs_pre0=1./fitresulttest.alpha;
     B_bs_pre= fitresulttest.lambda./fitresulttest.alpha;
     
-    [fitresulttestA,~,~,~]=createFit(Xse,Rse,eval(['''(1+A.*x./',num2str(B_bs_pre),').^-(1./A)''']), 'fitmethod',fitmethod,'censoring',SEcens,'upper',[inf],'start',A_bs_pre0,'lower',[-B_bs_pre/max(Xse(~SEcens))],'plot','off');
+    [fitresulttestA,~,~,~]=createfit(Xse,Rse,eval(['''(1+A.*x./',num2str(B_bs_pre),').^-(1./A)''']), 'fitmethod',fitmethod,'censoring',SEcens,'upper',[inf],'start',A_bs_pre0,'lower',[-B_bs_pre/max(Xse(~SEcens))],'plot','off');
     A_bs_pre=fitresulttestA.A;
     
-    fA = @(v) func_to_opt_pareto(v,Xse,Rse,'censoring',SEcens, 'fitmethod',fitmethod, 'B',B_opt,'theta',0, 'Conditions',conditions, 'AddVar',{'P' Pse});
+    fA = @(v) ssepareto(v,Xse,Rse,'censoring',SEcens, 'fitmethod',fitmethod, 'B',B_opt,'theta',0, 'Conditions',conditions, 'AddVar',{'P' Pse});
     A_se(i)=fminsearch(fA,A_bs_pre.*2,options);
     
-    fB = @(v) func_to_opt_pareto(v,Xse,Rse, 'censoring',SEcens, 'fitmethod',fitmethod, 'A',A_opt,'theta',0, 'Conditions',conditions, 'AddVar',{'P' Pse});
+    fB = @(v) ssepareto(v,Xse,Rse, 'censoring',SEcens, 'fitmethod',fitmethod, 'A',A_opt,'theta',0, 'Conditions',conditions, 'AddVar',{'P' Pse});
     B_se(i)=fminsearch(fB,B_bs_pre.*2,options);
 
     xr_se(i)=B_se(i)./abs(A_se(i));
