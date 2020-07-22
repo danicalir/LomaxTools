@@ -17,11 +17,11 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 
 <i>Matlab functions:</i>
 
-- createFit.m
+- createfit.m
 
 - distributions.m
 
-- func_to_opt_pareto.m
+- fitgpdistributions.m
 
 - lomaxbootstrap.m 
 
@@ -32,6 +32,8 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 - ndnanfilter.m<sup><b><i>(2)</i></b></sup>
 
 - plothilofilter.m
+
+- ssepareto.m
 
 
 <br>
@@ -47,7 +49,7 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 
 - plot_allfigures.m
 
-- plot_hillslopetransects.m
+- plot_comparegpfits.m
 
 - run_allcode.mlx
   
