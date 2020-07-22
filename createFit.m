@@ -1,4 +1,4 @@
-function [fitresult,gof,fiteq,Rfit] = createFit(X, Y, fitEQ, varargin)
+function [fitresult,gof,fiteq,Rfit] = createfit(X, Y, fitEQ, varargin)
 
 %  Fits input X,Y data to input equation (of any form) by solving
 %  for all equation parameters using nonlinear least squares fit method.
@@ -28,7 +28,7 @@ function [fitresult,gof,fiteq,Rfit] = createFit(X, Y, fitEQ, varargin)
 % 
 % 
 % EXAMPLE:
-% [fitresult,gof,fitparams,Rfit] = createFit(X,R,'fitmethod',fitmethod,'censoring',cens,'upper',[inf],'start',[0 .01],...
+% [fitresult,gof,fitparams,Rfit] = createfit(X,R,'fitmethod',fitmethod,'censoring',cens,'upper',[inf],'start',[0 .01],...
 %                                            'fitEQ','(1+A.*x./B).^-(1./A)','lower',[],'plot','off');  %
 % 
 % 

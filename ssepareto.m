@@ -1,4 +1,4 @@
-function SSE = func_to_opt_pareto(v,X,R,varargin)
+function SSE = ssepareto(v,X,R,varargin)
 
 % Calcuates the sum of squared errors (SSE) between input X and R data arrays
 % and a generalized Pareto (or Pareto II) model distribution (form below) with
@@ -9,7 +9,7 @@ function SSE = func_to_opt_pareto(v,X,R,varargin)
 %        R = [1 + A(X-theta)/B]^(-1/A),  for A =/= 0
 %            exp[-(X-theta)/B]           for A = 0.
 % 
-% Note: func_to_opt can be used as part of an joint optimization algorithm for
+% Note: ssepareto can be used as part of an joint optimization algorithm for
 %       A, B and theta by minimizing SSE with fminsearch (see example below).
 %        
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
@@ -27,7 +27,7 @@ function SSE = func_to_opt_pareto(v,X,R,varargin)
 %      'FitMethod' : 'linear' or 'log' values of errors to minimize (default = 'linear')
 %      'Censoring' : 'X>censorpoint1 | X<censorpoint2' or [elements of X to exclude] (default = [])
 %      'Conditions' : additional parameter conditions (will blow up error if met)
-%                (e.g., func_to_opt(v,X,R,'Conditions',{'A>0' 'P<0'}] will NOT allow A>0 or P>0)
+%                (e.g., ssepareto(v,X,R,'Conditions',{'A>0' 'P<0'}] will NOT allow A>0 or P>0)
 %      'AddVars' : cell array of additional variables needed to evaluate added Conditions
 %                - must be in format {'variable1name' variable1; 'variable2name' variable2;...}
 %                (e.g., to include P from above example condition, use: 'AddVars',{'P' P})
@@ -36,10 +36,10 @@ function SSE = func_to_opt_pareto(v,X,R,varargin)
 %      'theta' : set value for theta
 % 
 % 
-% EXAMPLE: Use func_to_opt_pareto as part of an optimization algorithm for
+% EXAMPLE: Use ssepareto as part of an optimization algorithm for
 %          A, B and theta by minimizing SSE with fminsearch: 
 % 
-%    f = @(v) func_to_opt(v,X,R,'censoring',cens, 'fitmethod','linear', 'theta',0, 'Conditions',conditions);
+%    f = @(v) ssepareto(v,X,R,'censoring',cens, 'fitmethod','linear', 'theta',0, 'Conditions',conditions);
 %    vopt = fminsearch(f,[A,B,theta]); 
 % 
 % 
