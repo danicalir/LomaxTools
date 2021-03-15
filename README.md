@@ -2,6 +2,8 @@
 
 These Matlab functions perform statistical and spectral analysis on empirical observations and gridded topographic data as described in Roth et al. (submitted to PNAS, 2020): Particle Motion on Burned and Vegetated Hillslopes<sup><b><i>(1)</i></b></sup>. 
 
+Roth, DL, Doane, T, Roering, JJ, Furbish, DJ, Zettler-Mann, A. (2020). Particle motion on burned and vegetated hillslopes. Proceedings of the National Academy of Sciences, 117(41) 25335-25343; DOI: 10.1073/pnas.1922495117
+
 The scripts contained in the Particle_Motion_exercise directory demonstrate the implementation of these functions, as well as initial data file preparation and figure generation. Data from this publication are contained in https://github.com/danicalir/Data_ParticleMotion. Please acknowledge the use of this software in any publications by citing this paper and software release.
 
 [![DOI](https://zenodo.org/badge/281159851.svg)](https://zenodo.org/badge/latestdoi/281159851)
