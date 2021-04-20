@@ -27,7 +27,7 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 
 - eldiff.m
 
-- fitgpdistributions.m
+- fitgpdistributions.m<sup><b><i>(3)</i></b></sup>
 
 - lomaxbootstrap.m 
 
@@ -35,7 +35,7 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 
 - nangaussfilt.m
 
-- ndnanfilter.m<sup><b><i>(3)</i></b></sup>
+- ndnanfilter.m<sup><b><i>(4)</i></b></sup>
 
 - plothilofilter.m
 
@@ -55,7 +55,7 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 
 - plot_allfigures.m
 
-- plot_comparegpfits.m
+- plot_comparegpfits.m<sup><b><i>(3)</i></b></sup>
 
 - run_allcode.mlx
   
@@ -71,10 +71,11 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 
 <b>(1)</b> Roth, DL, Doane, T, Roering, JJ, Furbish, DJ, Zettler-Mann, A. (2020). Particle motion on burned and vegetated hillslopes. Proceedings of the National Academy of Sciences, 117(41) 25335-25343; DOI: 10.1073/pnas.1922495117
 
-
 <b>(2)</b> This project was supported by funding from the National Science Foundation (EAR-1420898 and Postdoctoral Fellowship 1625311).
 
-<b>(3)</b> Written by Carlos Adrian Vargas Aguilera. Obtained from the Matlab Central File Exchange:
+<b>(3)</b> Runs and plots a comparison among other distribution-fitting methods (fitdist or gpfit, and MLE). 
+
+<b>(4)</b> Written by Carlos Adrian Vargas Aguilera. Obtained from the Matlab Central File Exchange:
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;https://www.mathworks.com/matlabcentral/fileexchange/20417-ndnanfilter-m
 <br>
