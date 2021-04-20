@@ -1,8 +1,6 @@
 # LomaxTools
 
-These Matlab functions perform statistical and spectral analysis on empirical observations and gridded topographic data as described in Roth et al. (submitted to PNAS, 2020): Particle Motion on Burned and Vegetated Hillslopes<sup><b><i>(1)</i></b></sup>. 
-
-Roth, DL, Doane, T, Roering, JJ, Furbish, DJ, Zettler-Mann, A. (2020). Particle motion on burned and vegetated hillslopes. Proceedings of the National Academy of Sciences, 117(41) 25335-25343; DOI: 10.1073/pnas.1922495117
+These Matlab functions perform statistical and spectral analysis on empirical observations and gridded topographic data as described in Roth et al. (2020)<sup><b><i>(1,2)</i></b></sup>. 
 
 The scripts contained in the Particle_Motion_exercise directory demonstrate the implementation of these functions, as well as initial data file preparation and figure generation. Data from this publication are contained in https://github.com/danicalir/Data_ParticleMotion. Please acknowledge the use of this software in any publications by citing this paper and software release.
 
@@ -21,11 +19,13 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 
 <b>Included files:</b>
 
-<i>Matlab functions:</i>
+<i>General MATLAB functions:</i>
 
 - createfit.m
 
 - distributions.m
+
+- eldiff.m
 
 - fitgpdistributions.m
 
@@ -35,7 +35,7 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 
 - nangaussfilt.m
 
-- ndnanfilter.m<sup><b><i>(2)</i></b></sup>
+- ndnanfilter.m<sup><b><i>(3)</i></b></sup>
 
 - plothilofilter.m
 
@@ -45,7 +45,7 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 <br>
 
 
-<i>Matlab scripts contained in ./Particle_Motion_exercise:</i>
+<i>MATLAB scripts contained in ./Particle_Motion_exercise:</i>
 
 - make_filteredtopo.m
 
@@ -69,9 +69,12 @@ All code copyright (C) 2020 Danica Roth (droth@mines.edu), except where otherwis
 
 <b>Notes:</b>
 
-<b>(1)</b> This project was supported by funding from the National Science Foundation (EAR-1420898 and Postdoctoral Fellowship 1625311).
+<b>(1)</b> Roth, DL, Doane, T, Roering, JJ, Furbish, DJ, Zettler-Mann, A. (2020). Particle motion on burned and vegetated hillslopes. Proceedings of the National Academy of Sciences, 117(41) 25335-25343; DOI: 10.1073/pnas.1922495117
 
-<b>(2)</b> Written by Carlos Adrian Vargas Aguilera. Obtained from the Matlab Central File Exchange:
+
+<b>(2)</b> This project was supported by funding from the National Science Foundation (EAR-1420898 and Postdoctoral Fellowship 1625311).
+
+<b>(3)</b> Written by Carlos Adrian Vargas Aguilera. Obtained from the Matlab Central File Exchange:
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;https://www.mathworks.com/matlabcentral/fileexchange/20417-ndnanfilter-m
 <br>
