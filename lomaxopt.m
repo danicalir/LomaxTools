@@ -11,7 +11,8 @@ function [A_opt,B_opt] = lomaxopt(X,R,varargin)
 % 
 %  Note: this algorithm provides more flexibility than built-in Matlab functions fitdist and
 %  gpfit (does not allow censoring for generalized Pareto distributions) provides a better fit
-%  than MLE methods. 
+%  than MLE methods. For a comparison of alternate results using these methods, run
+%  Particle_Motion_exercise/plot_comparegpfits.m.
 % 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 %   
