@@ -1,6 +1,6 @@
 function [A_opt,B_opt] = lomaxopt(X,R,varargin)
 
-%  Multi-step algorithm optimizes parameters A and B for input X and R data fit to an  Lomax
+%  Multi-step algorithm optimizes parameters A and B for input X and R data fit to a Lomax
 %  distribution (Generalized Pareto or Pareto II with location parameter theta set to 0)
 %  with optional censoring. The Lomax distribution is defined as:
 %       
